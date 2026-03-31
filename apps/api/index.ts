@@ -1,10 +1,12 @@
 import "dotenv/config";
 import app from "./app.js";
-import type { Request, Response } from "express";
+import http from "http"
+import { initSocket } from "./src/sockets/index.js";
 
 const PORT = process.env.PORT || 3000;
+const httpServer=http.createServer(app);
+const io=initSocket(httpServer)
 
-
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`Running at http://localhost:${PORT}`);
 });
