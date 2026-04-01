@@ -1,7 +1,7 @@
 import type { Redis } from "ioredis";
 import { pool } from "../../config/db.js";
 export class AuctionManager{
-  private redis: Redis;
+  private readonly redis: Redis;
 
   constructor(redis: Redis){
     this.redis = redis;
@@ -31,28 +31,37 @@ export class AuctionManager{
 
   async placeBid(auctionId:string,userId:string,amount:number){
     const key=`auction:${auctionId}`
-    const auction = await this.redis.hgetall(key);
-
-    if(!auction || Object.keys(auction).length===0){
-      throw new Error("Auction not found sir")
-    }
-    if(auction.status!="active"){
-      throw new Error("The auction isnt active now")
-    }
-
-    const currentPrice=Number(auction.currentPrice)
-    if(amount<=currentPrice){
-      throw new Error("Bid must be highter than the current price sir ")
-    }
-
-    await this.redis.hset(key,{
-      currentPrice:amount,
-      highesetBidder:userId
-    })
-    return{
-      auctionId,
-      newPrice:amount,
-      userId
+    while (true){
+      await this.redis.watch(key)
+      const auction=await this.redis.hgetall(key)
+      if(!auction || Object.keys(auction).length===0){
+        await this.redis.unwatch();
+        throw new Error("Auction not found sorry sir")
+      }
+      if(auction.status!=="active"){
+        await this.redis.unwatch()
+        throw new Error("Auction is not active sir")
+      }
+      const currentPrice=Number(auction.currentPrice)
+      if(amount<=currentPrice){
+        await this.redis.unwatch()
+        throw new Error("Bid must be higher than the current price");
+      }
+      const multi=this.redis.multi()
+      multi.hset(key,{
+        currentPrice:amount,
+        highestBidder:userId
+      })
+      const result=await multi.exec()
+      if(result===null){
+        continue
+      }
+      return {
+        auctionId,
+        newPrice:amount,
+        userId
+      }
     }
   }
+    
 }
