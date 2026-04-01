@@ -14,6 +14,7 @@ CREATE TABLE auctions (
   start_price INT NOT NULL,
   current_price INT NOT NULL,
   status VARCHAR(50) DEFAULT 'active',
+  image_url text,
   end_time TIMESTAMP NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
