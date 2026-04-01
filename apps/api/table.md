@@ -18,3 +18,23 @@ CREATE TABLE auctions (
   end_time TIMESTAMP NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE bids (
+  id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+  auction_id INT NOT NULL,
+  user_id INT NOT NULL,
+
+  amount INT NOT NULL,
+
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  CONSTRAINT fk_auction
+    FOREIGN KEY (auction_id)
+    REFERENCES auctions(id)
+    ON DELETE CASCADE,
+
+  CONSTRAINT fk_user
+    FOREIGN KEY (user_id)
+    REFERENCES users(id)
+    ON DELETE CASCADE
+);
