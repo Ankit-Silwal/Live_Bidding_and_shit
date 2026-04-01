@@ -1,5 +1,7 @@
 import { pool } from "../../config/db.js";
+import { redis } from "../../config/redis.js";
 import { uploadAuctionImage } from "../../config/supabase.js";
+import { AuctionManager } from "./auction.manager.js";
 import type { FillAuctionInput } from "./auction.types.js";
 
 export async function fillAuctionService(auction: FillAuctionInput, file?: Express.Multer.File) {
@@ -18,6 +20,8 @@ export async function fillAuctionService(auction: FillAuctionInput, file?: Expre
 	if (!id) {
 		throw new Error("Failed to create auction id");
 	}
+	const auctionManager = new AuctionManager(redis);
+	await auctionManager.loadAuctionIntoRedis(String(id));
 
 	if (file) {
 		const publicUrl = await uploadAuctionImage(file, id);
