@@ -1,5 +1,4 @@
-import { pool } from "../../config/db.js";
-import { redis } from "../../config/redis.js";
+import { pool, redis } from "@shared/config";
 import { uploadAuctionImage } from "../../config/supabase.js";
 import { AuctionManager } from "./auction.manager.js";
 import type { FillAuctionInput } from "./auction.types.js";

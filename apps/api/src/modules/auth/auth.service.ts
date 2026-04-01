@@ -1,5 +1,5 @@
 
-import { pool } from "../../config/db.js";
+import { pool } from "@shared/config";
 
 export interface UpsertUserInput {
   clerkId: string;

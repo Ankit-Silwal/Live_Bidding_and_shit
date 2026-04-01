@@ -1,5 +1,5 @@
 import type { Redis } from "ioredis";
-import { pool } from "../../config/db.js";
+import { pool } from "@shared/config";
 export class AuctionManager{
   private readonly redis: Redis;
 
