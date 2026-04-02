@@ -17,10 +17,18 @@ export function registerAuctionHandlers(io:Server,socket:Socket){
         userId,
         amount
       )
+      const jobId=`${auctionId}:${userId}:${amount}`
       await bidQueue.add("store-bid",{
         auctionId,
         userId,
         amount
+      },{
+        jobId,
+        attempts:3,
+        backoff:{
+          type:"exponential",
+          delay:1000
+        }
       })
       io.to(auctionId).emit("bid-update",result)
       callback?.({success:true,data:result})

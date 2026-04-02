@@ -2,7 +2,7 @@ import {pool} from "@shared/config"
 import { redis } from "@shared/config"
 import { Worker } from "bullmq"
 
-new Worker(
+const worker=new Worker(
   "auction-bids",
   async (job) =>
   {
@@ -18,3 +18,11 @@ new Worker(
     connection: redis
   }
 );
+
+worker.on("completed",(job)=>{
+  console.log(`JOb ${job.id} got completed`)
+})
+
+worker.on("failed",(job,err)=>{
+  console.error(`Job ${job?.id} faled ${err.message}`)
+})
