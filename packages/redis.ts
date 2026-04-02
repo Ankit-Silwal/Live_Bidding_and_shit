@@ -1,6 +1,9 @@
 import { Redis } from "ioredis";
 
-export const redis = new Redis(process.env.REDIS_URL ?? "redis://localhost:6379");
+export const redis = new Redis(process.env.REDIS_URL ?? "redis://localhost:6379", {
+  // BullMQ requires this option to disable per-command retries.
+  maxRetriesPerRequest: null,
+});
 
 redis.on("connect", () => {
   console.log("Connected to Redis");

@@ -1,5 +1,6 @@
 import type { Redis } from "ioredis";
 import { pool } from "@shared/config";
+
 export class AuctionManager{
   private readonly redis: Redis;
 
@@ -29,7 +30,7 @@ export class AuctionManager{
     }
   }
 
-  async placeBid(auctionId:string,userId:string,amount:number){
+  async placeBid(auctionId:string,userId:number,amount:number){
     const key=`auction:${auctionId}`
     while (true){
       await this.redis.watch(key)
@@ -47,6 +48,24 @@ export class AuctionManager{
         await this.redis.unwatch()
         throw new Error("Bid must be higher than the current price");
       }
+
+      const userResult=await pool.query(
+        `SELECT balance FROM users WHERE id=$1`,
+        [userId]
+      )
+
+      if(userResult.rows.length===0){
+        await this.redis.unwatch()
+        throw new Error("User not found sir")
+      }
+
+      const balance=Number(userResult.rows[0].balance)
+
+      if(balance<amount){
+        await this.redis.unwatch()
+        throw new Error("Insufficient balance sir")
+      }
+
       const multi=this.redis.multi()
       multi.hset(key,{
         currentPrice:amount,
@@ -63,5 +82,4 @@ export class AuctionManager{
       }
     }
   }
-    
 }
