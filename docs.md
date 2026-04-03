@@ -184,6 +184,20 @@ Error response:
 
 ### Auction routes
 
+#### GET `/api/auctions`
+
+Behavior:
+
+- Reads auctions directly from PostgreSQL
+- Query used: `SELECT * FROM auctions ORDER BY created_at DESC`
+
+Success response:
+
+- `200 OK`
+- Shape:
+  - `success: true`
+  - `data: <auction[]>`
+
 #### POST `/api/auctions`
 
 Content type:
@@ -216,6 +230,14 @@ Success response:
   - `imageUrl: <publicUrl or null>`
 
 ### Health-like route
+
+#### GET `/url`
+
+Response:
+
+- `200 OK` with:
+  - `success: true`
+  - `url: "http://localhost:5000"` (or value from `PORT` env)
 
 #### GET `/test`
 
@@ -271,7 +293,7 @@ Payload:
 
 The backend currently relies on these variables:
 
-- `PORT` (optional, default `3000`)
+- `PORT` (optional, default `5000`)
 - `REDIS_URL` (optional in code, default `redis://localhost:6379`)
 - `CLERK_SECRET_KEY` (required for auth token verification)
 - `NEXT_PUBLIC_SUPABASE_URL` (used by API for upload client)
@@ -310,7 +332,7 @@ Both services must run for full functionality:
 ## 10. End-to-End Auction Flow
 
 1. Client creates auction via `POST /api/auctions`.
-2. API stores auction in Postgres and Redis.
+2. Clients can fetch auctions via `GET /api/auctions` (database-backed list).
 3. API schedules delayed `end-auction` job.
 4. Clients join auction room via `join-auction`.
 5. Clients place bids via `place-bid`.

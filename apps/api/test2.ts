@@ -14,8 +14,8 @@ socket.on("connect", () =>
       "place-bid",
       {
         auctionId: "3",
-        userId: 26,
-        amount: 10000
+        userId: 30,
+        amount: 100000
       },
       (res: any) =>
       {
