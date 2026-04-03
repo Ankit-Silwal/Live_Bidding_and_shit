@@ -32,3 +32,9 @@ export async function upsertUser({
 
   return result.rows[0];
 }
+
+export async function getUserByClerkId(clerkId: string): Promise<any> {
+  const query = `SELECT id FROM users WHERE clerk_id = $1 LIMIT 1;`;
+  const result = await pool.query(query, [clerkId]);
+  return result.rows[0];
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { socket } from "../lib/socket";
+import { socket } from "@/lib/socket";
 
 interface BidPanelProps
 {
@@ -18,14 +18,26 @@ export default function BidPanel({ auctionId, userId, currentPrice }: BidPanelPr
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleQuickBid = (increment: number) =>
+  const handleQuickBid = (inc: number) =>
   {
-    setBidAmount((currentPrice || 0) + increment);
+    setBidAmount((currentPrice || 0) + inc);
   };
 
   const handleBid = () =>
   {
     setError(null);
+
+    if (!auctionId)
+    {
+      setError("Auction not ready");
+      return;
+    }
+
+    if (!userId)
+    {
+      setError("User not ready");
+      return;
+    }
 
     if (!bidAmount)
     {
@@ -33,9 +45,9 @@ export default function BidPanel({ auctionId, userId, currentPrice }: BidPanelPr
       return;
     }
 
-    const amountToBid = Number(bidAmount);
+    const amount = Number(bidAmount);
 
-    if (isNaN(amountToBid) || amountToBid < minBid)
+    if (isNaN(amount) || amount < minBid)
     {
       setError(`Minimum bid is ₹ ${minBid.toLocaleString()}`);
       return;
@@ -43,23 +55,16 @@ export default function BidPanel({ auctionId, userId, currentPrice }: BidPanelPr
 
     if (!socket.connected)
     {
-      setError("Connection lost. Try again.");
+      setError("Connection lost");
       return;
     }
 
     setLoading(true);
 
-    console.log("🚀 Sending bid:", {
-      auctionId,
-      userId,
-      amount: amountToBid
-    });
-
-    // ⛑️ Safety timeout (prevents infinite loading)
     const timeout = setTimeout(() =>
     {
       setLoading(false);
-      setError("Server not responding. Try again.");
+      setError("Server timeout");
     }, 5000);
 
     socket.emit(
@@ -67,22 +72,20 @@ export default function BidPanel({ auctionId, userId, currentPrice }: BidPanelPr
       {
         auctionId,
         userId,
-        amount: amountToBid,
+        amount,
       },
-      (response: any) =>
+      (res: any) =>
       {
         clearTimeout(timeout);
         setLoading(false);
 
-        console.log("📩 Response:", response);
-
-        if (response?.success)
+        if (res?.success)
         {
           setBidAmount("");
         }
         else
         {
-          setError(response?.error || "Bid failed");
+          setError(res?.error || "Bid failed");
         }
       }
     );
