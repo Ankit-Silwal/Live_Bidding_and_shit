@@ -45,33 +45,22 @@ export default function HomePage()
     syncUser();
   }, [isLoaded, user]);
 
-  // 🧪 MOCK DATA (NO BACKEND)
+  // 📥 FETCH AUCTIONS FROM BACKEND
   useEffect(() =>
   {
     if (!user) return;
 
-    const mockAuctions = [
-      {
-        id: 1,
-        item: "iPhone 15 Pro",
-        current_price: 85000,
-        end_time: new Date(Date.now() + 1000 * 60 * 5),
-      },
-      {
-        id: 2,
-        item: "Gaming Laptop RTX 4060",
-        current_price: 120000,
-        end_time: new Date(Date.now() + 1000 * 60 * 10),
-      },
-      {
-        id: 3,
-        item: "Nike Air Jordans",
-        current_price: 15000,
-        end_time: new Date(Date.now() + 1000 * 60 * 2),
-      },
-    ];
+    const fetchAuctions = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/auctions");
+        const data = await res.json();
+        setAuctions(data.data || []);
+      } catch (err) {
+        console.error("Failed to fetch auctions:", err);
+      }
+    };
 
-    setAuctions(mockAuctions);
+    fetchAuctions();
   }, [user]);
 
   // ⏳ Loading
@@ -133,9 +122,21 @@ export default function HomePage()
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {auctions.map((auction) => (
             <Link key={auction.id} href={`/auction/${auction.id}`} className="group block bg-white border border-gray-200 hover:border-gray-400 transition-colors">
-              <div className="relative h-64 bg-gray-100 flex items-center justify-center overflow-hidden">
-                <span className="text-gray-400 uppercase tracking-widest text-xs">Preview Not Available</span>
-              </div>
+              <div className="relative h-64 bg-gray-100 overflow-hidden">
+  {auction.image_url ? (
+    <img
+      src={auction.image_url}
+      alt={auction.item}
+      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+    />
+  ) : (
+    <div className="w-full h-full flex items-center justify-center">
+      <span className="text-gray-400 uppercase tracking-widest text-xs">
+        No Image
+      </span>
+    </div>
+  )}
+</div>
 
               <div className="p-6 flex flex-col justify-between">
                 <div>
