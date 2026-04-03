@@ -37,3 +37,11 @@ export async function fillAuctionService(auction: FillAuctionInput, file?: Expre
 
 	return { id, imageUrl: image_url ?? null };
 }
+
+export async function getAllAuctionsService() {
+	const result = await pool.query(
+		`SELECT * FROM auctions ORDER BY created_at DESC`
+	);
+
+	return result.rows;
+}
