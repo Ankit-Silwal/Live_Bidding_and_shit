@@ -7,6 +7,7 @@ import PriceDisplay from "@/components/PriceDisplay";
 import Timer from "@/components/Timer";
 import BidPanel from "@/components/BidPanel";
 import BidHistory from "@/components/BIdHistory";
+import { socket } from "@/lib/socket";
 
 export default function AuctionPage()
 {
@@ -16,9 +17,11 @@ export default function AuctionPage()
   const auctionId = params.id as string;
   const [auction, setAuction] = useState<any>(null);
   const [dbUserId, setDbUserId] = useState<number | null>(null);
+  const [currentPrice, setCurrentPrice] = useState<number>(0);
+  const [highestBidder, setHighestBidder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // 📥 FETCH SPECIFIC AUCTION
+  // FETCH SPECIFIC AUCTION
   useEffect(() => {
     if (!auctionId) return;
 
@@ -28,7 +31,10 @@ export default function AuctionPage()
         const data = await res.json();
         // Temporary filter until a GET /auctions/:id endpoint is built
         const found = data.data?.find((a: any) => a.id.toString() === String(auctionId));
-        setAuction(found || null);
+        if (found) {
+          setAuction(found);
+          setCurrentPrice(found.current_price);
+        }
       } catch (err) {
         console.error("Failed to fetch auction:", err);
       } finally {
@@ -39,7 +45,7 @@ export default function AuctionPage()
     fetchAuction();
   }, [auctionId]);
 
-  // 📥 FETCH DB USER ID
+  // FETCH DB USER ID
   useEffect(() => {
     if (!user?.id) return;
 
@@ -57,6 +63,38 @@ export default function AuctionPage()
 
     fetchDbUser();
   }, [user?.id]);
+
+  // JOIN AUCTION ROOM (WEBSOCKETS)
+  useEffect(() => {
+    if (!auctionId) return;
+
+    console.log("Joining auction:", auctionId);
+    socket.emit("join-auction", { auctionId: String(auctionId) });
+
+  }, [auctionId]);
+
+  // LISTEN FOR BID UPDATES (WEBSOCKETS)
+  useEffect(() => {
+    const handler = (data: any) => {
+      console.log("RECEIVED:", data);
+
+      if (String(data.auctionId) !== String(auctionId)) {
+        console.log("Ignored event (wrong auction)");
+        return;
+      }
+
+      console.log("Updating UI");
+
+      setCurrentPrice(Number(data.newPrice));
+      setHighestBidder(String(data.userId));
+    };
+
+    socket.on("bid-update", handler);
+
+    return () => {
+      socket.off("bid-update", handler);
+    };
+  }, [auctionId]);
 
   if (!user) {
     return <div>Loading user...</div>;
@@ -125,9 +163,16 @@ export default function AuctionPage()
             </div>
             
             <div className="grid grid-cols-2 gap-4 border-t border-gray-200 pt-6">
-              <PriceDisplay currentPrice={auction?.current_price} />
+              <PriceDisplay currentPrice={currentPrice} />
               <Timer endTime={auction?.end_time} />
             </div>
+            
+            {/* WHO IS WINNING */}
+            {highestBidder != null && dbUserId != null && Number(highestBidder) === dbUserId && (
+              <p className="text-green-600 font-semibold tracking-wide uppercase text-sm mt-4">
+                You are leading
+              </p>
+            )}
           </div>
 
           {/* Right Column: Interaction */}
@@ -135,7 +180,7 @@ export default function AuctionPage()
             <BidPanel 
               auctionId={auctionId}
               userId={dbUserId ? dbUserId.toString() : ""} 
-              currentPrice={auction?.current_price} 
+              currentPrice={currentPrice} 
             />
             <BidHistory />
           </div>

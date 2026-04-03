@@ -64,7 +64,7 @@ export class AuctionManager{
     return balance-locked
   }
 
-  private async updateLockedBalances(previousHighestBidder:number|null,currentPrice:number,bidAmount:number,userId:number){
+  private async updateLockedBalances(previousHighestBidder:number|null,currentPrice:number,bidAmount:number,userId:number, auctionId:string){
     const client=await pool.connect()
     try{
       await client.query("BEGIN")
@@ -93,6 +93,13 @@ export class AuctionManager{
           [bidAmount, userId]
         )
       }
+
+      await client.query(
+        `UPDATE auctions
+         SET current_price = $1
+         WHERE id = $2`,
+        [bidAmount, auctionId]
+      )
 
       await client.query("COMMIT")
     }catch(error){
@@ -127,17 +134,20 @@ export class AuctionManager{
           highestBidder:String(userId)
         })
         const result=await multi.exec()
-        if(result===null){
+        if(!result){
           continue
         }
 
-        await this.updateLockedBalances(previousHighestBidder,currentPrice,bidAmount,userId)
+        // Pass auctionId so it can update the auctions table
+        await this.updateLockedBalances(previousHighestBidder,currentPrice,bidAmount,userId,auctionId)
 
         return {
           auctionId,
           newPrice:bidAmount,
           userId
         }
+      } catch (err) {
+        throw err;
       } finally {
         await this.redis.unwatch()
       }
