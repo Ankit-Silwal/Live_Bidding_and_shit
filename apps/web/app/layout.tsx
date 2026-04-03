@@ -27,19 +27,26 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ClerkProvider>
-          <header className="flex justify-end items-center p-4 gap-4 h-16">
-            <Show when="signed-out">
-              <SignInButton />
-              <SignUpButton>
-                <button className="bg-[#6c47ff] text-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer">
-                  Sign Up
-                </button>
-              </SignUpButton>
-            </Show>
-            <Show when="signed-in">
-              <UserButton />
-            </Show>
-          </header>
+          <header className="flex items-center justify-between px-6 h-16 border-b border-slate-700 bg-[#0f172a]">
+  <div className="text-lg font-semibold text-white">
+    ⚡ BidX
+  </div>
+
+  <div className="flex items-center gap-4">
+    <Show when="signed-out">
+      <SignInButton />
+      <SignUpButton>
+        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+          Sign Up
+        </button>
+      </SignUpButton>
+    </Show>
+
+    <Show when="signed-in">
+      <UserButton />
+    </Show>
+  </div>
+</header>
           {children}
         </ClerkProvider>
       </body>
