@@ -94,14 +94,14 @@ export default function AuctionRoom({ auctionId }: { auctionId: string }) {
             </div>
             
             <div className="grid grid-cols-2 gap-4 border-t border-gray-200 pt-6">
-              <PriceDisplay />
-              <Timer />
+              <PriceDisplay currentPrice={auction?.current_price} />
+              <Timer endTime={auction?.end_time} />
             </div>
           </div>
 
           {/* Right Column: Interaction */}
           <div className="space-y-6">
-            <BidPanel />
+            <BidPanel currentPrice={auction?.current_price} />
             <BidHistory />
           </div>
 
