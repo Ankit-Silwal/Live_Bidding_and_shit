@@ -35,10 +35,7 @@ const worker = new Worker(
       await redis.hset(`auction:${auctionId}`, { status: "ended" });
 
       console.log(`Auction ended ${auctionId}`);
-      return;
-    }
-
-    if (job.name === "store-bid") {
+    } else if (job.name === "store-bid") {
       const { auctionId, userId, amount } = job.data;
 
       console.log("Processing bid:", job.data);
@@ -49,8 +46,6 @@ const worker = new Worker(
          ON CONFLICT DO NOTHING`,
         [auctionId, userId, amount]
       );
-
-      return;
     }
   },
   {
