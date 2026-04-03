@@ -49,10 +49,8 @@ export class AuctionManager{
         throw new Error("Bid must be higher than the current price");
       }
 
-      const userResult=await pool.query(
-        `SELECT balance FROM users WHERE id=$1`,
-        [userId]
-      )
+      const userResult=await pool.query(`
+        Select balance,locked_balance from users where id=$2`,[userId])
 
       if(userResult.rows.length===0){
         await this.redis.unwatch()
@@ -60,8 +58,9 @@ export class AuctionManager{
       }
 
       const balance=Number(userResult.rows[0].balance)
-
-      if(balance<amount){
+      const locked=Number(userResult.rows[0].locked_balance)
+      const available=balance-locked;
+      if(available<amount){
         await this.redis.unwatch()
         throw new Error("Insufficient balance sir")
       }
