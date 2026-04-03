@@ -5,6 +5,7 @@ CREATE TABLE users (
   username VARCHAR(100),
   profile_image TEXT,
   balance INT DEFAULT 100000;
+  locked_balance INT DEFAULT 0;
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
